@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Everywhere You Are</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Space+Grotesk:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #fff5f7;
+        --muted: rgba(255, 245, 247, 0.72);
+        --accent: #ff5c8a;
+        --accent-2: #ff1e56;
+        --shadow: rgba(5, 0, 8, 0.6);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", sans-serif;
+        color: var(--ink);
+        background: #070408;
+        overflow-x: hidden;
+      }
+
+      body.locked {
+        overflow: hidden;
+      }
+
+      h1,
+      h2 {
+        font-family: "Playfair Display", serif;
+        margin: 0 0 18px;
+        letter-spacing: 0.02em;
+      }
+
+      p {
+        margin: 0;
+        line-height: 1.75;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      #password-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        z-index: 10;
+        transition: opacity 0.8s ease;
+      }
+
+      #password-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .password-card {
+        text-align: center;
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        border: none;
+        width: min(360px, 90vw);
+      }
+
+      .password-card h1,
+      .password-card p {
+        display: none;
+      }
+
+      .password-input {
+        width: 100%;
+        padding: 14px 20px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 92, 138, 0.4);
+        background: rgba(6, 2, 6, 0.75);
+        color: var(--ink);
+        font-size: 1rem;
+        outline: none;
+        transition: box-shadow 0.3s ease, border-color 0.3s ease;
+      }
+
+      .password-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 15px rgba(255, 92, 138, 0.4);
+      }
+
+      .enter-btn {
+        margin-top: 18px;
+        padding: 14px 36px;
+        border-radius: 999px;
+        border: none;
+        font-weight: 600;
+        font-size: 1rem;
+        background: linear-gradient(135deg, #ff1e56, #ff5c8a);
+        color: #10050a;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .enter-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(255, 92, 138, 0.6);
+        animation: bounce 0.6s ease-in-out;
+      }
+
+      #main-content {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+      }
+
+      body.unlocked #main-content {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      section {
+        min-height: 100vh;
+        padding: 120px 8vw;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 24px;
+        overflow: hidden;
+      }
+
+      .section-title {
+        font-size: clamp(2.4rem, 4vw, 3.6rem);
+      }
+
+      .section-text {
+        font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+        color: var(--muted);
+        max-width: 720px;
+      }
+
+      .fade-on-view {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+      }
+
+      .fade-on-view.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .inazuma {
+        background: linear-gradient(135deg, #0b050c 0%, #2b0918 60%, #5a102c 100%);
+      }
+
+      .jasmine {
+        background: linear-gradient(135deg, #000 0%, #0a060c 60%, #1a0a12 100%);
+      }
+
+      .everywhere {
+        background: linear-gradient(135deg, #0a060c 0%, #2a0b19 55%, #4f0e2d 100%);
+      }
+
+      .nov9 {
+        background: linear-gradient(135deg, #ff5c8a 0%, #d7263d 55%, #2b0b13 100%);
+        color: var(--ink);
+      }
+
+      .nov9 .section-text {
+        color: var(--muted);
+      }
+
+      .valentines {
+        background: linear-gradient(135deg, #090409 0%, #210712 55%, #3c0b1c 100%);
+      }
+
+      #valentines .section-title {
+        margin-top: -80px;
+      }
+
+      .valentines-map {
+        position: absolute;
+        top: 38%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(640px, 82vw);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        pointer-events: none;
+        height: 40px;
+      }
+
+      .tomorrow {
+        background: linear-gradient(135deg, #070409 0%, #1d0812 60%, #3a0b1f 100%);
+      }
+
+      .lightning {
+        position: absolute;
+        width: 3px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.85);
+        transform: rotate(20deg);
+        animation: flicker 7s infinite;
+      }
+
+      .bubble-layer {
+        position: absolute;
+        inset: 0;
+      }
+
+      .bubble {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 92, 138, 0.25);
+        animation: float 15s infinite ease-in-out;
+        pointer-events: auto;
+      }
+
+      .bubble-label {
+        position: absolute;
+        top: -34px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(20, 8, 14, 0.9);
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+
+      .footstep {
+        position: absolute;
+        bottom: 50px;
+        width: 12px;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+
+      .aranara {
+        position: absolute;
+        bottom: 100px;
+        right: 50px;
+        width: 25px;
+        height: 25px;
+        background: #ffde59;
+        border-radius: 50% 50% 50% 20%;
+        animation: drift 12s infinite ease-in-out;
+        cursor: pointer;
+      }
+
+      .connection {
+        position: absolute;
+        top: 50%;
+        left: 12%;
+        width: 76%;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #ff1e56, transparent);
+        transform: translateY(-50%);
+      }
+
+      .connection-fill {
+        height: 100%;
+        width: 0%;
+        background: #ff5c8a;
+        transition: width 4s ease-in-out;
+      }
+
+      .dot {
+        position: relative;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+      }
+
+      .dot-label {
+        position: absolute;
+        top: -28px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.9rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      #stars {
+        position: absolute;
+        inset: 0;
+      }
+
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle 3s infinite ease-in-out;
+      }
+
+      #call-invite {
+        margin-top: 32px;
+        display: inline-block;
+        padding: 24px;
+        background: rgba(20, 8, 14, 0.85);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        border: 2px solid rgba(255, 92, 138, 0.35);
+        max-width: min(480px, 90vw);
+      }
+
+      #call-invite h3 {
+        margin: 0 0 10px;
+        font-family: "Playfair Display", serif;
+        font-size: 1.6rem;
+      }
+
+      #call-invite p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .message-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10, 7, 19, 0.6);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+        z-index: 20;
+      }
+
+      .message-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .message-card {
+        max-width: min(520px, 86vw);
+        background: rgba(20, 8, 14, 0.95);
+        color: var(--ink);
+        padding: 28px 36px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 0 40px rgba(255, 92, 138, 0.45);
+        font-size: 1.2rem;
+      }
+
+      .nav-dots {
+        position: fixed;
+        right: 30px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        z-index: 5;
+      }
+
+      .nav-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .nav-dot.active {
+        background: #ff5c8a;
+        transform: scale(1.3);
+      }
+
+      @keyframes flicker {
+        0%,
+        96%,
+        100% {
+          opacity: 0;
+        }
+        97% {
+          opacity: 1;
+          transform: scaleX(1.1) rotate(20deg);
+        }
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0) translateX(0);
+          opacity: 0.7;
+        }
+        50% {
+          transform: translateY(-100px) translateX(var(--offset, 0));
+          opacity: 1;
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(0.8);
+          opacity: 0.6;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(0.8);
+          opacity: 0.6;
+        }
+      }
+
+      @keyframes drift {
+        0%,
+        100% {
+          transform: translateY(0) translateX(0);
+        }
+        50% {
+          transform: translateY(-30px) translateX(20px);
+        }
+      }
+
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.2;
+          transform: scale(0.8);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes confetti {
+        0% {
+          transform: scale(0) translateY(0) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1) translateY(100vh) rotate(720deg);
+          opacity: 0;
+        }
+      }
+
+      @keyframes glow {
+        0%,
+        100% {
+          box-shadow: 0 0 15px rgba(255, 92, 138, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 25px rgba(255, 92, 138, 0.8);
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes heartbeat {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        10%,
+        30% {
+          transform: scale(1.1);
+        }
+        20%,
+        40% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes ripple {
+        0% {
+          transform: scale(1);
+          opacity: 0.8;
+        }
+        100% {
+          transform: scale(1.5);
+          opacity: 0;
+        }
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: -200% 0;
+        }
+        100% {
+          background-position: 200% 0;
+        }
+      }
+
+      @keyframes rise {
+        0% {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes sway {
+        0%,
+        100% {
+          transform: rotate(-2deg);
+        }
+        50% {
+          transform: rotate(2deg);
+        }
+      }
+
+      @keyframes blurIn {
+        0% {
+          filter: blur(6px);
+          opacity: 0;
+        }
+        100% {
+          filter: blur(0);
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 1023px) {
+        .password-card {
+          padding: 32px 26px;
+        }
+
+        section {
+          padding: 100px 6vw;
+        }
+      }
+
+      @media (max-width: 767px) {
+        section {
+          padding: 80px 5vw;
+          min-height: 90vh;
+        }
+
+        .lightning {
+          display: none;
+        }
+
+        .bubble {
+          display: none;
+        }
+
+        .nav-dots {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="locked">
+    <div id="password-screen">
+      <div class="password-card">
+        <input
+          id="password-input"
+          class="password-input"
+          type="password"
+          aria-label="Passphrase"
+        />
+        <button class="enter-btn" id="enter-btn">Next</button>
+      </div>
+    </div>
+
+    <main id="main-content">
+      <section id="jasmine" class="jasmine">
+        <h2 class="section-title fade-on-view">For Jasmine</h2>
+        <p class="section-text fade-on-view">The first page of us starts here.</p>
+      </section>
+
+      <section id="inazuma" class="inazuma">
+        <div class="lightning" style="left: 18%; top: 20%;"></div>
+        <div class="lightning" style="left: 45%; top: 55%; animation-delay: 3.2s;"></div>
+        <div class="lightning" style="left: 75%; top: 30%; animation-delay: 5.7s;"></div>
+        <h2 class="section-title fade-on-view">Inazuma</h2>
+        <p class="section-text fade-on-view">
+          February 19, 2023<br />
+          I logged into Genshin thinking I would farm artifacts.<br />
+          Instead, I found you and never logged out of us.
+        </p>
+      </section>
+
+      <section id="everywhere" class="everywhere">
+        <div class="bubble-layer" id="bubble-layer"></div>
+        <h2 class="section-title fade-on-view">Everywhere</h2>
+        <p class="section-text fade-on-view">
+          Discord movie nights. 3AM calls. Valorant chaos. TikTok. Among Us sus moments.
+          You did not just play games with me, you built a universe where I always felt
+          found.
+        </p>
+      </section>
+
+      <section id="nov9" class="nov9">
+        <div class="footstep" style="left: 20%; animation-delay: 0.5s;"></div>
+        <div class="footstep" style="left: 35%; animation-delay: 1s;"></div>
+        <div class="footstep" style="left: 50%; animation-delay: 1.5s;"></div>
+        <div class="footstep" style="left: 65%; animation-delay: 2s;"></div>
+        <div class="footstep" style="left: 80%; animation-delay: 2.5s;"></div>
+        <div class="aranara" id="aranara"></div>
+        <h2 class="section-title fade-on-view">November 9, 2025</h2>
+        <p class="section-text fade-on-view">
+          I flew from Japan just to hold your hand. Mall, movie, karaoke, arcade, food,
+          TikToks, and then you kissed me in front of your dad like you were saying,
+          "This one's mine." Best day of my life.
+        </p>
+      </section>
+
+      <section id="valentines" class="valentines">
+        <div class="valentines-map">
+          <div class="dot">
+            <span class="dot-label">New York</span>
+          </div>
+          <div class="connection">
+            <div class="connection-fill" id="connection-fill"></div>
+          </div>
+          <div class="dot">
+            <span class="dot-label">Manila</span>
+          </div>
+        </div>
+        <h2 class="section-title fade-on-view">Valentine's 2026</h2>
+        <p class="section-text fade-on-view">
+          I was supposed to be there today. Mom said no, and my heart aches knowing I am
+          not holding your hand right now. But Jasmine, oceans cannot dilute this. Timezones
+          cannot delay it. My love for you does not need a passport.
+        </p>
+      </section>
+
+      <section id="today" class="tomorrow">
+        <div id="stars"></div>
+        <h2 class="section-title fade-on-view">Today</h2>
+        <p class="section-text fade-on-view">
+          I cannot be beside you today, but I can be with you. Tonight we will make a
+          virtual call feel like a slow dance. No noise, no distractions, just us and the
+          promise that distance does not get the last word.
+        </p>
+        <div id="call-invite">
+          <h3>Tonight at 8 PM (PH time)</h3>
+          <p>Your Valentine call is waiting. I will be on the other side.</p>
+        </div>
+      </section>
+    </main>
+
+    <div class="message-overlay" id="message-overlay">
+      <div class="message-card" id="message-card"></div>
+    </div>
+
+    <script>
+      const passwordInput = document.getElementById("password-input");
+      const enterBtn = document.getElementById("enter-btn");
+      const passwordScreen = document.getElementById("password-screen");
+      const connectionFill = document.getElementById("connection-fill");
+      const bubbleLayer = document.getElementById("bubble-layer");
+      const aranara = document.getElementById("aranara");
+      const messageOverlay = document.getElementById("message-overlay");
+      const messageCard = document.getElementById("message-card");
+      const todayTitle = document.querySelector("#today .section-title");
+
+      const platformNames = [
+        "Discord movie night",
+        "3AM call",
+        "TikTok",
+        "Valorant clutch",
+        "Among Us sus",
+        "Arknights gacha pull",
+        "Mobile Legends duo",
+        "Instagram DM thread",
+        "Facebook memory",
+        "Email love letter",
+      ];
+
+      function showMessage(text) {
+        messageCard.textContent = text;
+        messageOverlay.classList.add("visible");
+        setTimeout(() => messageOverlay.classList.remove("visible"), 2800);
+      }
+
+      function unlock() {
+        const pass = passwordInput.value.trim().toLowerCase();
+        if (pass === "hisharkdoyouwantfish") {
+          document.body.classList.remove("locked");
+          document.body.classList.add("unlocked");
+          passwordScreen.classList.add("hidden");
+          setTimeout(() => {
+            createStars();
+            createBubbles();
+            initObservers();
+            initNavDots();
+          }, 400);
+        } else {
+          alert("Not quite our phrase. Try again?");
+          passwordInput.value = "";
+        }
+      }
+
+      enterBtn.addEventListener("click", unlock);
+      passwordInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+          unlock();
+        }
+      });
+
+      function initObservers() {
+        document.querySelectorAll(".fade-on-view").forEach((el) => {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("is-visible");
+                }
+              });
+            },
+            { threshold: 0.35 }
+          );
+          observer.observe(el);
+        });
+
+        const sectionObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                connectionFill.style.width = "100%";
+              }
+            });
+          },
+          { threshold: 0.5 }
+        );
+        sectionObserver.observe(document.getElementById("valentines"));
+      }
+
+      function createBubbles() {
+        const bubbleCount = 15;
+        for (let i = 0; i < bubbleCount; i += 1) {
+          const bubble = document.createElement("div");
+          bubble.className = "bubble";
+          const size = Math.random() * 60 + 30;
+          bubble.style.width = `${size}px`;
+          bubble.style.height = `${size}px`;
+          bubble.style.left = `${Math.random() * 100}%`;
+          bubble.style.top = `${Math.random() * 100}%`;
+          bubble.style.setProperty("--offset", `${Math.random() * 80 - 40}px`);
+          bubble.style.animationDelay = `${Math.random() * 5}s`;
+          bubble.style.animationDuration = `${12 + Math.random() * 10}s`;
+          bubble.dataset.label = platformNames[i % platformNames.length];
+
+          bubble.addEventListener("mouseenter", () => {
+            const label = document.createElement("div");
+            label.className = "bubble-label";
+            label.textContent = bubble.dataset.label;
+            bubble.appendChild(label);
+          });
+
+          bubble.addEventListener("mouseleave", () => {
+            const label = bubble.querySelector(".bubble-label");
+            if (label) {
+              label.remove();
+            }
+          });
+
+          bubbleLayer.appendChild(bubble);
+        }
+      }
+
+      function createStars() {
+        const stars = document.getElementById("stars");
+        const starCount = 42;
+        for (let i = 0; i < starCount; i += 1) {
+          const star = document.createElement("div");
+          star.className = "star";
+          const size = Math.random() * 4 + 1;
+          star.style.width = `${size}px`;
+          star.style.height = `${size}px`;
+          star.style.left = `${Math.random() * 100}%`;
+          star.style.top = `${Math.random() * 100}%`;
+          star.style.animationDelay = `${Math.random() * 3}s`;
+          stars.appendChild(star);
+        }
+      }
+
+      let clickCount = 0;
+      aranara.addEventListener("click", () => {
+        clickCount += 1;
+        aranara.style.transform = "scale(1.2)";
+        setTimeout(() => {
+          aranara.style.transform = "";
+        }, 100);
+
+        if (clickCount >= 7) {
+          triggerConfetti();
+          showMessage(
+            "Kuru - You collected every Aranara for my Welkin Moon. You always saw magic in my world."
+          );
+          clickCount = 0;
+        }
+      });
+
+      aranara.addEventListener("touchstart", (event) => {
+        event.preventDefault();
+        aranara.click();
+      });
+
+      function triggerConfetti() {
+        for (let i = 0; i < 50; i += 1) {
+          const confetti = document.createElement("div");
+          confetti.style.position = "fixed";
+          confetti.style.width = "10px";
+          confetti.style.height = "10px";
+          confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+          confetti.style.borderRadius = "50%";
+          confetti.style.left = `${Math.random() * 100}%`;
+          confetti.style.top = `${Math.random() * 100}%`;
+          confetti.style.transform = "scale(0)";
+          confetti.style.animation = `confetti ${1 + Math.random()}s linear forwards`;
+          confetti.style.zIndex = "30";
+          document.body.appendChild(confetti);
+          setTimeout(() => confetti.remove(), 2000);
+        }
+      }
+
+      document.querySelectorAll(".lightning").forEach((bolt) => {
+        bolt.addEventListener("dblclick", () => {
+          bolt.style.opacity = "1";
+          bolt.style.background = "white";
+          bolt.style.boxShadow = "0 0 30px white";
+          setTimeout(() => {
+            bolt.style.opacity = "";
+            bolt.style.background = "";
+            bolt.style.boxShadow = "";
+          }, 300);
+          showMessage("You remember - this is where it all began.");
+        });
+      });
+
+      let konamiIndex = 0;
+      const konamiCode = [
+        "arrowup",
+        "arrowup",
+        "arrowdown",
+        "arrowdown",
+        "arrowleft",
+        "arrowright",
+        "arrowleft",
+        "arrowright",
+        "b",
+        "a",
+      ];
+
+      document.addEventListener("keydown", (event) => {
+        const key = event.key.toLowerCase();
+        if (key === konamiCode[konamiIndex]) {
+          konamiIndex += 1;
+          if (konamiIndex === konamiCode.length) {
+            document.body.style.background =
+              "linear-gradient(135deg, #ff9ec9 0%, #ffb7d1 100%)";
+            showMessage("You are my favorite cheat code, Jasmine.");
+            konamiIndex = 0;
+          }
+        } else {
+          konamiIndex = 0;
+        }
+      });
+
+      let pressTimer = null;
+      function startLongPress() {
+        pressTimer = setTimeout(() => {
+          document.querySelectorAll(".star").forEach((star) => {
+            star.style.animation = "twinkle 0.2s infinite";
+          });
+          showMessage("Tonight is ours, no matter the distance.");
+          setTimeout(() => {
+            document.querySelectorAll(".star").forEach((star) => {
+              star.style.animation = "twinkle 3s infinite ease-in-out";
+            });
+          }, 2000);
+        }, 3000);
+      }
+
+      function stopLongPress() {
+        clearTimeout(pressTimer);
+      }
+
+      todayTitle.addEventListener("mousedown", startLongPress);
+      todayTitle.addEventListener("mouseup", stopLongPress);
+      todayTitle.addEventListener("mouseleave", stopLongPress);
+      todayTitle.addEventListener("touchstart", (event) => {
+        event.preventDefault();
+        startLongPress();
+      });
+      todayTitle.addEventListener("touchend", stopLongPress);
+
+      function initNavDots() {
+        const nav = document.createElement("div");
+        nav.className = "nav-dots";
+        const sectionIds = [
+          "jasmine",
+          "inazuma",
+          "everywhere",
+          "nov9",
+          "valentines",
+          "today",
+        ];
+
+        sectionIds.forEach((id) => {
+          const dot = document.createElement("div");
+          dot.className = "nav-dot";
+          dot.addEventListener("click", () => {
+            document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+          });
+          nav.appendChild(dot);
+
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  dot.classList.add("active");
+                } else {
+                  dot.classList.remove("active");
+                }
+              });
+            },
+            { threshold: 0.5 }
+          );
+          observer.observe(document.getElementById(id));
+        });
+
+        document.body.appendChild(nav);
+      }
+    </script>
+  </body>
+</html>
